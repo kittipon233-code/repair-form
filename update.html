@@ -13,23 +13,18 @@
     .header{background:#1565C0;margin:-20px -20px 20px;padding:16px;text-align:center;border-radius:16px 16px 0 0;color:#fff}
     .header h1{font-size:18px;font-weight:bold;margin-top:4px}
     .info-box{background:#f5f5f5;border-radius:10px;padding:14px;margin-bottom:16px}
-    .info-row{display:flex;gap:8px;margin-bottom:6px;font-size:14px}
+    .info-row{font-size:14px;margin-bottom:6px;color:#333}
     .info-row:last-child{margin-bottom:0}
     .label{font-size:13px;font-weight:bold;color:#333;margin-bottom:6px;display:block}
-    textarea,input[type=text]{width:100%;padding:11px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:14px;color:#333}
-    textarea:focus,input:focus{outline:none;border-color:#1565C0}
-    textarea{height:80px;resize:none}
-    .upload-box{border:1.5px dashed #ddd;border-radius:10px;padding:16px;text-align:center;margin-bottom:14px;cursor:pointer;background:#fafafa}
-    .upload-box input{display:none}
-    .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-    .upload-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd}
+    textarea{width:100%;padding:11px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:14px;color:#333;height:80px;resize:none}
+    textarea:focus{outline:none;border-color:#1565C0}
     .btn-done{width:100%;padding:14px;border:none;border-radius:10px;background:#2E7D32;color:#fff;cursor:pointer;font-size:16px;font-weight:bold;font-family:inherit}
     .btn-done:disabled{background:#aaa;cursor:not-allowed}
-    .success-page{display:none;text-align:center;padding:32px 16px}
+    .success-page{text-align:center;padding:32px 16px}
     .success-page .s-icon{font-size:56px;margin-bottom:12px}
     .success-page h2{font-size:20px;font-weight:bold;color:#2E7D32;margin-bottom:8px}
     .success-page p{font-size:14px;color:#666}
-    .loading{text-align:center;padding:40px;color:#666}
+    .loading{text-align:center;padding:40px;color:#666;font-size:15px}
   </style>
 </head>
 <body>
@@ -44,22 +39,12 @@
 
     <div id="form-section" style="display:none">
       <div class="info-box" id="info-box"></div>
-
       <label class="label">📝 หมายเหตุ (ไม่บังคับ)</label>
       <textarea id="remark" placeholder="พิมพ์หมายเหตุ..."></textarea>
-
-      <label class="label">📷 รูปภาพ (ไม่บังคับ สูงสุด 3 รูป)</label>
-      <div class="upload-box" onclick="document.getElementById('imgInput').click()">
-        <div style="font-size:24px">📷</div>
-        <div style="font-size:13px;color:#888;margin-top:4px">กดเพื่อเลือกรูป</div>
-        <input type="file" id="imgInput" accept="image/*" multiple onchange="previewImages(this)">
-      </div>
-      <div class="upload-preview" id="preview"></div>
-
       <button class="btn-done" id="doneBtn" onclick="markDone()">✅ เสร็จสิ้น</button>
     </div>
 
-    <div class="success-page" id="success-section">
+    <div class="success-page" id="success-section" style="display:none">
       <div class="s-icon">✅</div>
       <h2>อัปเดตสำเร็จ!</h2>
       <p>งานถูกอัปเดตเรียบร้อยแล้ว<br>กำลังปิดหน้าต่าง...</p>
@@ -68,13 +53,12 @@
 </div>
 
 <script>
-const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
-const LIFF_ID  = '2009967914-L3U5ryzs';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
+const LIFF_ID = '2009967914-FVdcK4w2';
 
 let rowId    = '';
 let groupId  = '';
 let userName = '';
-let selectedFiles = [];
 
 window.onload = async () => {
   try { await liff.init({ liffId: LIFF_ID }); } catch(e) {}
@@ -88,9 +72,13 @@ window.onload = async () => {
     userName = profile.displayName;
   } catch(e) {}
 
-  // ดึงข้อมูลงานจาก GAS
+  if (!rowId) {
+    document.getElementById('loading').textContent = '❌ ไม่พบข้อมูลงาน';
+    return;
+  }
+
   try {
-    const res  = await fetch(GAS_URL + `?action=getRow&rowId=${rowId}`);
+    const res  = await fetch(GAS_URL + `?action=getRow&rowId=${encodeURIComponent(rowId)}`);
     const data = await res.json();
     if (data.status === 'ok' && data.row) {
       showInfo(data.row);
@@ -98,12 +86,12 @@ window.onload = async () => {
       document.getElementById('loading').textContent = '❌ ไม่พบข้อมูลงาน';
     }
   } catch(e) {
-    document.getElementById('loading').textContent = '❌ เกิดข้อผิดพลาด';
+    document.getElementById('loading').textContent = '❌ เกิดข้อผิดพลาด กรุณาลองใหม่';
   }
 };
 
 function showInfo(row) {
-  document.getElementById('loading').style.display = 'none';
+  document.getElementById('loading').style.display      = 'none';
   document.getElementById('form-section').style.display = 'block';
 
   const location = row.zone === 'Office'
@@ -111,52 +99,13 @@ function showInfo(row) {
     : `🏠 ${row.zone} ห้อง ${row.room}`;
 
   document.getElementById('info-box').innerHTML = `
-    <div class="info-row"><span>${location}</span></div>
-    <div class="info-row"><span>🔧 ${row.repairType}</span></div>
-    <div class="info-row"><span>📋 ${row.repairNote}</span></div>
-    <div class="info-row"><span>📝 ${row.detail}</span></div>
-    <div class="info-row"><span>📅 ${row.date}</span></div>
-    <div class="info-row"><span>👤 แจ้งโดย: ${row.userName}</span></div>
+    <div class="info-row"><b>${location}</b></div>
+    <div class="info-row">🔧 ${row.repairType}</div>
+    <div class="info-row">📋 ${row.repairNote || '-'}</div>
+    <div class="info-row">📝 ${row.detail}</div>
+    <div class="info-row">📅 ${row.date}</div>
+    <div class="info-row">👤 แจ้งโดย: ${row.userName}</div>
   `;
-}
-
-function previewImages(input) {
-  const files = Array.from(input.files).slice(0, 3);
-  selectedFiles = files;
-  const preview = document.getElementById('preview');
-  preview.innerHTML = '';
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      preview.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadImages() {
-  const urls = [];
-  for (const file of selectedFiles) {
-    const base64 = await toBase64(file);
-    const res = await fetch(GAS_URL + `?type=uploadImage&fileName=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`, {
-      method: 'POST',
-      body: base64.split(',')[1]
-    });
-    const data = await res.json();
-    if (data.url) urls.push(data.url);
-  }
-  return urls;
-}
-
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 async function markDone() {
@@ -166,14 +115,8 @@ async function markDone() {
   btn.disabled    = true;
   btn.textContent = 'กำลังอัปเดต...';
 
-  let imageUrls = [];
-  if (selectedFiles.length > 0) {
-    btn.textContent = 'กำลังอัปโหลดรูป...';
-    try { imageUrls = await uploadImages(); } catch(e) {}
-  }
-
   try {
-    await fetch(GAS_URL + `?action=markDone&rowId=${rowId}&userName=${encodeURIComponent(userName)}&groupId=${groupId}&remark=${encodeURIComponent(remark)}&imageUrls=${encodeURIComponent(imageUrls.join(','))}&workerUrl=${encodeURIComponent('https://repair-bot.kittipon233.workers.dev/')}`);
+    await fetch(GAS_URL + `?action=markDone&rowId=${encodeURIComponent(rowId)}&userName=${encodeURIComponent(userName)}&groupId=${encodeURIComponent(groupId)}&remark=${encodeURIComponent(remark)}&workerUrl=${encodeURIComponent('https://repair-bot.kittipon233.workers.dev/')}`);
 
     document.getElementById('form-section').style.display  = 'none';
     document.getElementById('success-section').style.display = 'block';
