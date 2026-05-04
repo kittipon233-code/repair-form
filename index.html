@@ -30,6 +30,22 @@
       outline: none; border-color: #2E7D32;
     }
     textarea { height: 100px; resize: none; }
+
+    /* ปุ่มเลือกประเภทสถานที่ */
+    .type-buttons {
+      display: flex; gap: 12px; margin-bottom: 4px;
+    }
+    .type-btn {
+      flex: 1; padding: 12px; border: 2px solid #ddd;
+      border-radius: 10px; background: white; font-size: 15px;
+      font-family: inherit; cursor: pointer; text-align: center;
+      transition: all 0.2s;
+    }
+    .type-btn.active {
+      border-color: #2E7D32; background: #e8f5e9; color: #2E7D32;
+      font-weight: bold;
+    }
+
     .btn-submit {
       width: 100%; padding: 14px; background: #2E7D32;
       color: white; border: none; border-radius: 12px;
@@ -42,6 +58,7 @@
     .success .icon { font-size: 64px; margin-bottom: 16px; }
     .success h2 { font-size: 22px; margin-bottom: 8px; color: #2E7D32; }
     .success p { color: #666; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -53,27 +70,59 @@
     </div>
 
     <div id="form-section">
+
+      <!-- เลือกประเภทสถานที่ -->
       <div class="form-group">
-        <label>🏘️ Zone</label>
-        <select id="zone" onchange="updateRooms()">
-          <option value="">-- เลือก Zone --</option>
-          <option value="Zone Villa">Zone Villa</option>
-          <option value="Zone 9">Zone 9</option>
-          <option value="Zone 8">Zone 8</option>
-          <option value="Zone 6">Zone 6</option>
-          <option value="Zone 5">Zone 5</option>
-          <option value="Zone 4">Zone 4</option>
-          <option value="Zone 3">Zone 3</option>
-        </select>
+        <label>📍 ประเภทสถานที่</label>
+        <div class="type-buttons">
+          <button class="type-btn" id="btn-room" onclick="selectLocationType('room')">
+            🏠 ห้องพัก
+          </button>
+          <button class="type-btn" id="btn-office" onclick="selectLocationType('office')">
+            🏢 Office
+          </button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>🏠 ห้อง</label>
-        <select id="room">
-          <option value="">-- เลือก Zone ก่อน --</option>
-        </select>
+      <!-- ส่วนห้องพัก -->
+      <div id="room-section" class="hidden">
+        <div class="form-group">
+          <label>🏘️ Zone</label>
+          <select id="zone" onchange="updateRooms()">
+            <option value="">-- เลือก Zone --</option>
+            <option value="Zone Villa">Zone Villa</option>
+            <option value="Zone 9">Zone 9</option>
+            <option value="Zone 8">Zone 8</option>
+            <option value="Zone 6">Zone 6</option>
+            <option value="Zone 5">Zone 5</option>
+            <option value="Zone 4">Zone 4</option>
+            <option value="Zone 3">Zone 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>🏠 ห้อง</label>
+          <select id="room">
+            <option value="">-- เลือก Zone ก่อน --</option>
+          </select>
+        </div>
       </div>
 
+      <!-- ส่วน Office -->
+      <div id="office-section" class="hidden">
+        <div class="form-group">
+          <label>🏢 แผนก</label>
+          <select id="office">
+            <option value="">-- เลือกแผนก --</option>
+            <option value="HR">👥 HR - ฝ่ายบุคคล</option>
+            <option value="AC">💰 AC - บัญชี</option>
+            <option value="FO">🛎️ FO - แผนกต้อนรับ</option>
+            <option value="MK">👨‍🍳 MK - ครัว</option>
+            <option value="HK">🧹 HK - แม่บ้าน</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ประเภทการซ่อม -->
       <div class="form-group">
         <label>🛠️ ประเภทการซ่อม</label>
         <select id="repairType">
@@ -82,15 +131,18 @@
           <option value="ประปา">🚿 ประปา</option>
           <option value="แอร์">❄️ แอร์</option>
           <option value="เฟอร์นิเจอร์">🪑 เฟอร์นิเจอร์</option>
+          <option value="งานไม้">🪵 งานไม้</option>
           <option value="อื่นๆ">🔧 อื่นๆ</option>
         </select>
       </div>
 
+      <!-- วันที่ -->
       <div class="form-group">
         <label>📅 วันที่</label>
         <input type="date" id="repairDate">
       </div>
 
+      <!-- รายละเอียด -->
       <div class="form-group">
         <label>📝 รายละเอียด</label>
         <textarea id="detail" placeholder="พิมพ์รายละเอียดการซ่อมที่นี่..."></textarea>
@@ -110,9 +162,11 @@
 </div>
 
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxipgciLfnivMQABakqzflLZprf8vAygi0m5T4Vf-R4vtQjRDrV2ojKZf9a6wS34b-C/exec';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxipgciLfnivMQABakqzflLZprf8vAygi0m5T4Vf-R4vtQjRDrV2ojKZf9a6wS34b-C/exec';
 const WORKER_URL = 'https://repair-bot.kittipon233.workers.dev/';
 const LIFF_ID    = '2009967914-L3U5ryzs';
+
+let locationType = ''; // 'room' หรือ 'office'
 
 const rooms = {
   'Zone Villa': ['1101','1102','1103'],
@@ -126,6 +180,14 @@ const rooms = {
   'Zone 4':     ['401','402','403','404','405','406','407','408'],
   'Zone 3':     ['301','302','303','304','305','306','307','333','888']
 };
+
+function selectLocationType(type) {
+  locationType = type;
+  document.getElementById('btn-room').classList.toggle('active', type === 'room');
+  document.getElementById('btn-office').classList.toggle('active', type === 'office');
+  document.getElementById('room-section').classList.toggle('hidden', type !== 'room');
+  document.getElementById('office-section').classList.toggle('hidden', type !== 'office');
+}
 
 function updateRooms() {
   const zone = document.getElementById('zone').value;
@@ -155,13 +217,38 @@ window.onload = async () => {
 };
 
 async function submitForm() {
-  const zone       = document.getElementById('zone').value;
-  const room       = document.getElementById('room').value;
   const repairType = document.getElementById('repairType').value;
   const date       = document.getElementById('repairDate').value;
   const detail     = document.getElementById('detail').value.trim();
 
-  if (!zone || !room || !repairType || !date || !detail) {
+  // ตรวจสอบประเภทสถานที่
+  if (!locationType) {
+    alert('กรุณาเลือกประเภทสถานที่ก่อน');
+    return;
+  }
+
+  let zone = '';
+  let location = '';
+
+  if (locationType === 'room') {
+    zone = document.getElementById('zone').value;
+    const room = document.getElementById('room').value;
+    if (!zone || !room) {
+      alert('กรุณาเลือก Zone และห้องให้ครบ');
+      return;
+    }
+    location = room;
+  } else {
+    const office = document.getElementById('office').value;
+    if (!office) {
+      alert('กรุณาเลือกแผนก');
+      return;
+    }
+    zone = 'Office';
+    location = office;
+  }
+
+  if (!repairType || !date || !detail) {
     alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
     return;
   }
@@ -185,18 +272,25 @@ async function submitForm() {
 
   const payload = {
     type: 'repair',
-    zone, room, repairType, date, detail,
-    userName, userId, groupId
+    locationType,
+    zone,
+    room: location,
+    repairType,
+    date,
+    detail,
+    userName,
+    userId,
+    groupId
   };
 
   try {
-    // ส่งไป Apps Script เพื่อบันทึก Sheets
+    // 1. บันทึกลง Google Sheets
     await fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
       method: 'GET',
       mode: 'no-cors'
     });
 
-    // ส่งไป Cloudflare Worker เพื่อส่งข้อความกลับ LINE
+    // 2. ส่งสรุปกลับเข้ากลุ่ม LINE
     await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
