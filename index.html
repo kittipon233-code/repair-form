@@ -269,8 +269,8 @@ async function submitForm() {
 
   try {
     // ส่งไป GAS อย่างเดียว GAS จะส่งต่อไป Worker เอง
-    await fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
-      method: 'GET', mode: 'no-cors'
+    fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
+  method: 'GET', mode: 'no-cors'
     });
 
     goPage('p5');
