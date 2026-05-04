@@ -116,7 +116,7 @@ async function markDone() {
   btn.textContent = 'กำลังอัปเดต...';
 
   try {
-    await fetch(GAS_URL + `?action=markDone&rowId=${encodeURIComponent(rowId)}&userName=${encodeURIComponent(userName)}&groupId=${encodeURIComponent(groupId)}&remark=${encodeURIComponent(remark)}&workerUrl=${encodeURIComponent('https://repair-bot.kittipon233.workers.dev/')}`);
+    fetch(GAS_URL + `?action=markDone&rowId=${encodeURIComponent(rowId)}&userName=${encodeURIComponent(userName)}&groupId=${encodeURIComponent(groupId)}&remark=${encodeURIComponent(remark)}&workerUrl=${encodeURIComponent('https://repair-bot.kittipon233.workers.dev/')}`);
 
     document.getElementById('form-section').style.display  = 'none';
     document.getElementById('success-section').style.display = 'block';
