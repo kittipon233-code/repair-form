@@ -110,8 +110,9 @@
 </div>
 
 <script>
-const BACKEND_URL = 'https://repair-bot.kittipon233.workers.dev/';
-const LIFF_ID = '2009967914-L3U5ryzs';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxFyg0KoDONpKd00HvTg6M56nfA5906g6wPLIuHITZwV-piTlvNT2tVhbvAUvLJjWg/exec';
+const WORKER_URL = 'https://repair-bot.kittipon233.workers.dev/';
+const LIFF_ID    = '2009967914-L3U5ryzs';
 
 const rooms = {
   'Zone Villa': ['1101','1102','1103'],
@@ -130,12 +131,10 @@ function updateRooms() {
   const zone = document.getElementById('zone').value;
   const roomSelect = document.getElementById('room');
   roomSelect.innerHTML = '';
-
   if (!zone) {
     roomSelect.innerHTML = '<option value="">-- เลือก Zone ก่อน --</option>';
     return;
   }
-
   roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
   rooms[zone].forEach(r => {
     const opt = document.createElement('option');
@@ -148,7 +147,6 @@ function updateRooms() {
 window.onload = async () => {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('repairDate').value = today;
-
   try {
     await liff.init({ liffId: LIFF_ID });
   } catch (err) {
@@ -192,7 +190,14 @@ async function submitForm() {
   };
 
   try {
-    await fetch(BACKEND_URL, {
+    // ส่งไป Apps Script เพื่อบันทึก Sheets
+    await fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+
+    // ส่งไป Cloudflare Worker เพื่อส่งข้อความกลับ LINE
+    await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
