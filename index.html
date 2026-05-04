@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บันทึกการซ่อม</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; background: #f0f4f0; }
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
+    .card {
+      background: white; border-radius: 16px;
+      padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      margin-top: 16px;
+    }
+    .header {
+      text-align: center; margin-bottom: 24px;
+      padding-bottom: 16px; border-bottom: 2px solid #e8f5e9;
+    }
+    .header h1 { color: #2E7D32; font-size: 22px; margin-top: 8px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-weight: bold; margin-bottom: 6px; color: #333; font-size: 14px; }
+    select, textarea, input[type="date"] {
+      width: 100%; padding: 12px; border: 1.5px solid #ddd;
+      border-radius: 10px; font-size: 15px; font-family: inherit;
+      transition: border-color 0.2s; background: white;
+    }
+    select:focus, textarea:focus, input[type="date"]:focus {
+      outline: none; border-color: #2E7D32;
+    }
+    textarea { height: 100px; resize: none; }
+    .btn-submit {
+      width: 100%; padding: 14px; background: #2E7D32;
+      color: white; border: none; border-radius: 12px;
+      font-size: 17px; font-weight: bold; cursor: pointer;
+      margin-top: 8px; font-family: inherit;
+    }
+    .btn-submit:active { background: #1B5E20; }
+    .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+    .success { display: none; text-align: center; padding: 32px 16px; }
+    .success .icon { font-size: 64px; margin-bottom: 16px; }
+    .success h2 { font-size: 22px; margin-bottom: 8px; color: #2E7D32; }
+    .success p { color: #666; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <div style="font-size:40px">🔧</div>
+      <h1>บันทึกการซ่อม</h1>
+    </div>
+
+    <div id="form-section">
+      <div class="form-group">
+        <label>🏘️ Zone</label>
+        <select id="zone" onchange="updateRooms()">
+          <option value="">-- เลือก Zone --</option>
+          <option value="Zone Villa">Zone Villa</option>
+          <option value="Zone 9">Zone 9</option>
+          <option value="Zone 8">Zone 8</option>
+          <option value="Zone 6">Zone 6</option>
+          <option value="Zone 5">Zone 5</option>
+          <option value="Zone 4">Zone 4</option>
+          <option value="Zone 3">Zone 3</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🏠 ห้อง</label>
+        <select id="room">
+          <option value="">-- เลือก Zone ก่อน --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🛠️ ประเภทการซ่อม</label>
+        <select id="repairType">
+          <option value="">-- เลือกประเภท --</option>
+          <option value="ไฟฟ้า">🔌 ไฟฟ้า</option>
+          <option value="ประปา">🚿 ประปา</option>
+          <option value="แอร์">❄️ แอร์</option>
+          <option value="เฟอร์นิเจอร์">🪑 เฟอร์นิเจอร์</option>
+          <option value="อื่นๆ">🔧 อื่นๆ</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📅 วันที่</label>
+        <input type="date" id="repairDate">
+      </div>
+
+      <div class="form-group">
+        <label>📝 รายละเอียด</label>
+        <textarea id="detail" placeholder="พิมพ์รายละเอียดการซ่อมที่นี่..."></textarea>
+      </div>
+
+      <button class="btn-submit" onclick="submitForm()" id="submitBtn">
+        ✅ บันทึก
+      </button>
+    </div>
+
+    <div class="success" id="success-section">
+      <div class="icon">✅</div>
+      <h2>บันทึกสำเร็จ!</h2>
+      <p>ข้อมูลถูกบันทึกเรียบร้อยแล้ว<br>กำลังปิดหน้าต่าง...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxifIvrdNhywMO8y8-6bCwP1vUNPK-3mckjdLR-FazIPoP0CfJ6V_Hh0gt9g2icuPYaOA/exec';
+const LIFF_ID = '2009967914-L3U5ryzs';
+
+const rooms = {
+  'Zone Villa': ['1101','1102','1103'],
+  'Zone 9':     ['901','902','903','904','905','906'],
+  'Zone 8':     ['801','802','803','804','805','806','807','808'],
+  'Zone 6':     ['601','602','603','604','605','606','607','608',
+                 '609','610','611','612','613','614','615','616'],
+  'Zone 5':     ['511','512','513','514','515','516','517','518',
+                 '521','522','523','524','525','526',
+                 '531','532','533','534','535','536'],
+  'Zone 4':     ['401','402','403','404','405','406','407','408'],
+  'Zone 3':     ['301','302','303','304','305','306','307','333','888']
+};
+
+function updateRooms() {
+  const zone = document.getElementById('zone').value;
+  const roomSelect = document.getElementById('room');
+  roomSelect.innerHTML = '';
+
+  if (!zone) {
+    roomSelect.innerHTML = '<option value="">-- เลือก Zone ก่อน --</option>';
+    return;
+  }
+
+  roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+  rooms[zone].forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    roomSelect.appendChild(opt);
+  });
+}
+
+window.onload = async () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('repairDate').value = today;
+
+  try {
+    await liff.init({ liffId: LIFF_ID });
+  } catch (err) {
+    console.error('LIFF init error:', err);
+  }
+};
+
+async function submitForm() {
+  const zone       = document.getElementById('zone').value;
+  const room       = document.getElementById('room').value;
+  const repairType = document.getElementById('repairType').value;
+  const date       = document.getElementById('repairDate').value;
+  const detail     = document.getElementById('detail').value.trim();
+
+  if (!zone || !room || !repairType || !date || !detail) {
+    alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+
+  let userName = 'ไม่ระบุ';
+  let userId = '';
+  try {
+    const profile = await liff.getProfile();
+    userName = profile.displayName;
+    userId   = profile.userId;
+  } catch (err) {
+    console.error('Profile error:', err);
+  }
+
+  const params  = new URLSearchParams(window.location.search);
+  const groupId = params.get('groupId') || '';
+
+  const payload = {
+    type: 'repair',
+    zone, room, repairType, date, detail,
+    userName, userId, groupId
+  };
+
+  try {
+    await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+
+    document.getElementById('form-section').style.display = 'none';
+    document.getElementById('success-section').style.display = 'block';
+
+    setTimeout(() => {
+      try { liff.closeWindow(); } catch(e) {}
+    }, 2000);
+
+  } catch (err) {
+    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    btn.disabled = false;
+    btn.textContent = '✅ บันทึก';
+  }
+}
+</script>
+</body>
+</html>
