@@ -34,11 +34,6 @@
     select,textarea,input[type=date]{width:100%;padding:11px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:14px;color:#333}
     select:focus,textarea:focus,input:focus{outline:none;border-color:#2E7D32}
     textarea{height:80px;resize:none}
-    .upload-box{border:1.5px dashed #ddd;border-radius:10px;padding:16px;text-align:center;margin-bottom:14px;cursor:pointer;background:#fafafa}
-    .upload-box:active{background:#e8f5e9;border-color:#2E7D32}
-    .upload-box input{display:none}
-    .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-    .upload-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd}
     .row-btns{display:flex;gap:8px;margin-top:4px}
     .btn-back{flex:1;padding:12px;border:1.5px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;color:#333;font-family:inherit}
     .btn-save{flex:2;padding:12px;border:none;border-radius:10px;background:#2E7D32;color:#fff;cursor:pointer;font-size:14px;font-weight:bold;font-family:inherit}
@@ -136,14 +131,6 @@
       <label class="label">📝 รายละเอียด</label>
       <textarea id="detail" placeholder="พิมพ์รายละเอียดการซ่อมที่นี่..."></textarea>
 
-      <label class="label">📷 รูปภาพ (ไม่บังคับ สูงสุด 3 รูป)</label>
-      <div class="upload-box" onclick="document.getElementById('imgInput').click()">
-        <div style="font-size:24px">📷</div>
-        <div style="font-size:13px;color:#888;margin-top:4px">กดเพื่อเลือกรูป</div>
-        <input type="file" id="imgInput" accept="image/*" multiple onchange="previewImages(this)">
-      </div>
-      <div class="upload-preview" id="preview"></div>
-
       <label class="label">🔄 สถานะ</label>
       <div class="grid-2" style="margin-bottom:14px">
         <div class="btn-status active-pending" id="btn-pending" onclick="selectStatus('pending')">🔴 กำลังดำเนินการ</div>
@@ -168,10 +155,8 @@
 </div>
 
 <script>
-const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
-const WORKER_URL = 'https://repair-bot.kittipon233.workers.dev/';
-const LIFF_ID    = '2009967914-L3U5ryzs';
-const MAX_IMAGES = 3;
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
+const LIFF_ID  = '2009967914-L3U5ryzs';
 
 const rooms = {
   'Zone Villa': ['1101','1102','1103'],
@@ -187,7 +172,6 @@ let currentType     = '';
 let currentZone     = '';
 let currentLocation = '';
 let currentStatus   = 'pending';
-let selectedFiles   = [];
 
 function goPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -242,45 +226,6 @@ function selectStatus(s) {
   document.getElementById('btn-done').className    = 'btn-status' + (s === 'done'    ? ' active-done'    : '');
 }
 
-function previewImages(input) {
-  const files = Array.from(input.files).slice(0, MAX_IMAGES);
-  selectedFiles = files;
-  const preview = document.getElementById('preview');
-  preview.innerHTML = '';
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      preview.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadImages() {
-  const urls = [];
-  for (const file of selectedFiles) {
-    const base64 = await toBase64(file);
-    const res = await fetch(GAS_URL + `?type=uploadImage&fileName=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`, {
-      method: 'POST',
-      body: base64.split(',')[1]
-    });
-    const data = await res.json();
-    if (data.url) urls.push(data.url);
-  }
-  return urls;
-}
-
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 window.onload = async () => {
   setToday();
   try { await liff.init({ liffId: LIFF_ID }); } catch(e) {}
@@ -309,13 +254,6 @@ async function submitForm() {
     userId   = profile.userId;
   } catch(e) {}
 
-  // อัปโหลดรูปก่อน
-  let imageUrls = [];
-  if (selectedFiles.length > 0) {
-    btn.textContent = 'กำลังอัปโหลดรูป...';
-    try { imageUrls = await uploadImages(); } catch(e) { console.error(e); }
-  }
-
   const params  = new URLSearchParams(window.location.search);
   const groupId = params.get('groupId') || '';
 
@@ -326,19 +264,13 @@ async function submitForm() {
     room: currentLocation,
     repairType, repairNote, date, detail,
     status: currentStatus,
-    imageUrls,
     userName, userId, groupId
   };
 
   try {
+    // ส่งไป GAS อย่างเดียว GAS จะส่งต่อไป Worker เอง
     await fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
       method: 'GET', mode: 'no-cors'
-    });
-    await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      mode: 'no-cors'
     });
 
     goPage('p5');
