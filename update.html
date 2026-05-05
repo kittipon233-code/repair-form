@@ -91,7 +91,18 @@ window.onload = async () => {
 };
 
 function showInfo(row) {
-  document.getElementById('loading').style.display      = 'none';
+  document.getElementById('loading').style.display = 'none';
+
+  // ถ้างานเสร็จแล้ว แสดงข้อความแทนฟอร์ม
+  if (row.status === 'เสร็จสิ้น') {
+    document.getElementById('form-section').style.display  = 'none';
+    document.getElementById('success-section').style.display = 'block';
+    document.querySelector('.success-page .s-icon').textContent = '✅';
+    document.querySelector('.success-page h2').textContent = 'งานเสร็จสิ้นแล้ว';
+    document.querySelector('.success-page p').textContent  = 'งานนี้ถูกอัปเดตเสร็จสิ้นแล้วครับ';
+    return;
+  }
+
   document.getElementById('form-section').style.display = 'block';
 
   const location = row.zone === 'Office'
