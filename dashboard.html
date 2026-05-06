@@ -8,7 +8,7 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Sarabun',sans-serif;background:#f0f4f0;padding:16px}
-    h1{text-align:center;color:#2E7D32;margin-bottom:20px;font-size:22px}
+    h1{text-align:center;color:#2E7D32;margin-bottom:8px;font-size:22px}
     .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
     .card{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
     .card .num{font-size:32px;font-weight:bold;margin:8px 0}
@@ -29,10 +29,13 @@
     .badge-done{background:#C8E6C9;color:#1B5E20;padding:2px 8px;border-radius:10px;font-size:12px}
     .loading{text-align:center;padding:40px;color:#666}
     .last-update{text-align:center;font-size:12px;color:#999;margin-bottom:16px}
+    .pending-row td{background:#fff9f9}
     @media(max-width:480px){
       .charts{grid-template-columns:1fr}
       .summary{grid-template-columns:repeat(3,1fr)}
       .card .num{font-size:24px}
+      table{font-size:11px}
+      th,td{padding:6px 4px}
     }
   </style>
 </head>
@@ -61,6 +64,27 @@
       <div class="lbl">เสร็จสิ้น</div>
       <div class="num" id="total-done">0</div>
       <div class="lbl">รายการ</div>
+    </div>
+  </div>
+
+  <!-- ตารางงานค้าง -->
+  <div class="chart-full">
+    <h3>🔴 รายการงานค้างทั้งหมด</h3>
+    <div id="no-pending" style="text-align:center;color:#2E7D32;padding:16px;display:none">✅ ไม่มีงานค้าง</div>
+    <div style="overflow-x:auto">
+      <table id="pending-table" style="display:none">
+        <thead>
+          <tr>
+            <th>สถานที่</th>
+            <th>ประเภท</th>
+            <th>รายการแจ้งซ่อม</th>
+            <th>รายละเอียด</th>
+            <th>ผู้แจ้ง</th>
+            <th>วันที่</th>
+          </tr>
+        </thead>
+        <tbody id="pending-tbody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -127,6 +151,30 @@ function renderDashboard(data) {
   document.getElementById('total-pending').textContent = data.totalPending;
   document.getElementById('total-done').textContent    = data.totalDone;
 
+  // ตารางงานค้าง
+  const pendingList  = data.pendingList || [];
+  const pendingTable = document.getElementById('pending-table');
+  const noPending    = document.getElementById('no-pending');
+  const pendingTbody = document.getElementById('pending-tbody');
+
+  if (pendingList.length === 0) {
+    noPending.style.display = 'block';
+  } else {
+    pendingTable.style.display = 'table';
+    pendingList.forEach(item => {
+      pendingTbody.innerHTML += `
+        <tr class="pending-row">
+          <td>${item.location}</td>
+          <td>${item.repairType}</td>
+          <td>${item.repairNote || '-'}</td>
+          <td>${item.detail}</td>
+          <td>${item.userName}</td>
+          <td>${item.date}</td>
+        </tr>
+      `;
+    });
+  }
+
   // กราฟ Zone
   const zoneLabels = Object.keys(data.zoneData);
   const zoneValues = Object.values(data.zoneData);
@@ -170,7 +218,6 @@ function renderDashboard(data) {
 
   // กราฟรายเดือน
   const monthLabels  = Object.keys(data.monthData);
-  const monthTotal   = monthLabels.map(m => data.monthData[m].total);
   const monthPending = monthLabels.map(m => data.monthData[m].pending);
   const monthDone    = monthLabels.map(m => data.monthData[m].done);
   new Chart(document.getElementById('monthChart'), {
