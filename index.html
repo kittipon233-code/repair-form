@@ -19,11 +19,12 @@
     .breadcrumb{font-size:12px;color:#666;margin-bottom:12px;padding:8px 12px;background:#f5f5f5;border-radius:8px}
     .breadcrumb span{color:#2E7D32;font-weight:bold}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
     .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:16px}
     .btn-card{padding:16px 8px;border:1.5px solid #ddd;border-radius:12px;background:#fff;cursor:pointer;text-align:center}
     .btn-card:active{background:#e8f5e9;border-color:#2E7D32}
     .btn-card .ico{font-size:28px;margin-bottom:4px}
-    .btn-card .lbl{font-size:14px;font-weight:bold;color:#333}
+    .btn-card .lbl{font-size:13px;font-weight:bold;color:#333}
     .btn-zone{padding:12px 6px;border:1.5px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;text-align:center;font-size:13px;font-weight:bold;color:#333;line-height:1.4}
     .btn-zone:active{background:#e8f5e9;border-color:#2E7D32}
     .btn-room{padding:10px 4px;border:1.5px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-size:13px;font-weight:bold;color:#333}
@@ -31,7 +32,7 @@
     .btn-status{padding:12px;border:1.5px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;text-align:center;font-size:14px;font-weight:bold;color:#333}
     .btn-status.active-pending{border-color:#E53935;background:#fff5f5;color:#E53935}
     .btn-status.active-done{border-color:#2E7D32;background:#e8f5e9;color:#2E7D32}
-    select,textarea,input[type=date]{width:100%;padding:11px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:14px;color:#333}
+    select,textarea,input[type=date],input[type=text]{width:100%;padding:11px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:14px;color:#333}
     select:focus,textarea:focus,input:focus{outline:none;border-color:#2E7D32}
     textarea{height:80px;resize:none}
     .row-btns{display:flex;gap:8px;margin-top:4px}
@@ -52,10 +53,10 @@
       <h1>บันทึกการซ่อม</h1>
     </div>
 
-    <!-- หน้า 1 -->
+    <!-- หน้า 1: เลือกประเภทสถานที่ -->
     <div class="page active" id="p1">
       <p class="section-title">เลือกประเภทสถานที่</p>
-      <div class="grid-2">
+      <div class="grid-3">
         <div class="btn-card" onclick="selectType('room')">
           <div class="ico">🏠</div>
           <div class="lbl">ห้องพัก</div>
@@ -64,10 +65,14 @@
           <div class="ico">🏢</div>
           <div class="lbl">Office</div>
         </div>
+        <div class="btn-card" onclick="selectType('service')">
+          <div class="ico">🍽️</div>
+          <div class="lbl">พื้นที่บริการ</div>
+        </div>
       </div>
     </div>
 
-    <!-- หน้า 2a -->
+    <!-- หน้า 2a: เลือก Zone -->
     <div class="page" id="p2a">
       <p class="section-title">เลือก Zone</p>
       <div class="grid-2">
@@ -84,7 +89,7 @@
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 2b -->
+    <!-- หน้า 2b: เลือก Office -->
     <div class="page" id="p2b">
       <p class="section-title">เลือกแผนก</p>
       <div class="grid-2">
@@ -92,14 +97,22 @@
         <div class="btn-zone" onclick="selectOffice('AC')">💰 AC<br><span style="font-size:11px;font-weight:normal;color:#888">บัญชี</span></div>
         <div class="btn-zone" onclick="selectOffice('FO')">🛎️ FO<br><span style="font-size:11px;font-weight:normal;color:#888">ต้อนรับ</span></div>
         <div class="btn-zone" onclick="selectOffice('MK')">👨‍🍳 MK<br><span style="font-size:11px;font-weight:normal;color:#888">ครัว</span></div>
-      </div>
-      <div style="margin-bottom:16px">
-        <div class="btn-zone" onclick="selectOffice('HK')">🧹 HK - แม่บ้าน</div>
+        <div class="btn-zone" onclick="selectOffice('HK')">🧹 HK<br><span style="font-size:11px;font-weight:normal;color:#888">แม่บ้าน</span></div>
+        <div class="btn-zone" onclick="selectOffice('ENG')">🔧 ENG<br><span style="font-size:11px;font-weight:normal;color:#888">ช่าง</span></div>
       </div>
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 3 -->
+    <!-- หน้า 2c: พื้นที่บริการ -->
+    <div class="page" id="p2c">
+      <p class="section-title">ระบุพื้นที่บริการ</p>
+      <label class="label">📍 ชื่อพื้นที่</label>
+      <input type="text" id="serviceArea" placeholder="เช่น Dining Room, Beach Bar, Spa...">
+      <button class="btn-save" style="width:100%;margin-bottom:12px" onclick="selectService()">ถัดไป →</button>
+      <button class="btn-back" style="width:100%" onclick="goPage('p1')">← กลับ</button>
+    </div>
+
+    <!-- หน้า 3: เลือกห้อง -->
     <div class="page" id="p3">
       <div class="breadcrumb">🏠 ห้องพัก › <span id="zone-label"></span></div>
       <p class="section-title">เลือกห้อง</p>
@@ -107,7 +120,7 @@
       <button class="btn-back" onclick="goPage('p2a')">← กลับ</button>
     </div>
 
-    <!-- หน้า 4 -->
+    <!-- หน้า 4: กรอกรายละเอียด -->
     <div class="page" id="p4">
       <div class="breadcrumb" id="bc-detail"></div>
 
@@ -143,7 +156,7 @@
       </div>
     </div>
 
-    <!-- หน้า 5 -->
+    <!-- หน้า 5: สำเร็จ -->
     <div class="page" id="p5">
       <div class="success-page">
         <div class="s-icon">✅</div>
@@ -180,7 +193,9 @@ function goPage(id) {
 
 function selectType(t) {
   currentType = t;
-  goPage(t === 'room' ? 'p2a' : 'p2b');
+  if (t === 'room')    goPage('p2a');
+  if (t === 'office')  goPage('p2b');
+  if (t === 'service') goPage('p2c');
 }
 
 function selectZone(z) {
@@ -212,6 +227,20 @@ function selectOffice(o) {
   document.getElementById('bc-detail').innerHTML =
     '🏢 Office › <span style="color:#2E7D32;font-weight:bold">' + o + '</span>';
   document.getElementById('btn-back-detail').onclick = () => goPage('p2b');
+  setToday();
+  goPage('p4');
+}
+
+function selectService() {
+  const area = document.getElementById('serviceArea').value.trim();
+  if (!area) {
+    alert('กรุณาระบุชื่อพื้นที่');
+    return;
+  }
+  currentLocation = area;
+  document.getElementById('bc-detail').innerHTML =
+    '🍽️ พื้นที่บริการ › <span style="color:#2E7D32;font-weight:bold">' + area + '</span>';
+  document.getElementById('btn-back-detail').onclick = () => goPage('p2c');
   setToday();
   goPage('p4');
 }
@@ -257,10 +286,17 @@ async function submitForm() {
   const params  = new URLSearchParams(window.location.search);
   const groupId = params.get('groupId') || '';
 
+  // กำหนด zone และ locationType ตามประเภท
+  let zone        = '';
+  let locationType = currentType;
+  if (currentType === 'room')    zone = currentZone;
+  if (currentType === 'office')  zone = 'Office';
+  if (currentType === 'service') zone = 'พื้นที่บริการ';
+
   const payload = {
     type: 'repair',
-    locationType: currentType,
-    zone: currentType === 'office' ? 'Office' : currentZone,
+    locationType,
+    zone,
     room: currentLocation,
     repairType, repairNote, date, detail,
     status: currentStatus,
@@ -268,9 +304,8 @@ async function submitForm() {
   };
 
   try {
-    // ส่งไป GAS อย่างเดียว GAS จะส่งต่อไป Worker เอง
     fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
-  method: 'GET', mode: 'no-cors'
+      method: 'GET', mode: 'no-cors'
     });
 
     goPage('p5');
