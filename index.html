@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>บันทึกการซ่อม</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Sarabun',sans-serif;background:#f0f4f0}
@@ -42,7 +43,6 @@
     .success-page .s-icon{font-size:56px;margin-bottom:12px}
     .success-page h2{font-size:20px;font-weight:bold;color:#2E7D32;margin-bottom:8px}
     .success-page p{font-size:14px;color:#666}
-    .summary-box{background:#f5f5f5;border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px;line-height:1.8}
   </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
       <h1>บันทึกการซ่อม</h1>
     </div>
 
-    <!-- หน้า 1 -->
+    <!-- หน้า 1: เลือกประเภทสถานที่ -->
     <div class="page active" id="p1">
       <p class="section-title">เลือกประเภทสถานที่</p>
       <div class="grid-3">
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <!-- หน้า 2a -->
+    <!-- หน้า 2a: เลือก Zone -->
     <div class="page" id="p2a">
       <p class="section-title">เลือก Zone</p>
       <div class="grid-2">
@@ -89,7 +89,7 @@
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 2b -->
+    <!-- หน้า 2b: เลือก Office -->
     <div class="page" id="p2b">
       <p class="section-title">เลือกแผนก</p>
       <div class="grid-2">
@@ -103,7 +103,7 @@
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 2c -->
+    <!-- หน้า 2c: พื้นที่บริการ -->
     <div class="page" id="p2c">
       <p class="section-title">ระบุพื้นที่บริการ</p>
       <label class="label">📍 ชื่อพื้นที่</label>
@@ -112,7 +112,7 @@
       <button class="btn-back" style="width:100%" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 3 -->
+    <!-- หน้า 3: เลือกห้อง -->
     <div class="page" id="p3">
       <div class="breadcrumb">🏠 ห้องพัก › <span id="zone-label"></span></div>
       <p class="section-title">เลือกห้อง</p>
@@ -120,9 +120,10 @@
       <button class="btn-back" onclick="goPage('p2a')">← กลับ</button>
     </div>
 
-    <!-- หน้า 4 -->
+    <!-- หน้า 4: กรอกรายละเอียด -->
     <div class="page" id="p4">
       <div class="breadcrumb" id="bc-detail"></div>
+
       <label class="label">🛠️ ประเภทการซ่อม</label>
       <select id="repairType">
         <option value="">-- เลือกประเภท --</option>
@@ -133,37 +134,42 @@
         <option value="งานไม้">🪵 งานไม้</option>
         <option value="อื่นๆ">🔧 อื่นๆ</option>
       </select>
+
       <label class="label">📋 รายการแจ้งซ่อม</label>
       <textarea id="repairNote" placeholder="พิมพ์รายละเอียด..."></textarea>
+
       <label class="label">📅 วันที่</label>
       <input type="date" id="repairDate">
+
       <label class="label">📝 รายละเอียด</label>
       <textarea id="detail" placeholder="พิมพ์รายละเอียดการซ่อมที่นี่..."></textarea>
+
       <label class="label">🔄 สถานะ</label>
       <div class="grid-2" style="margin-bottom:14px">
         <div class="btn-status active-pending" id="btn-pending" onclick="selectStatus('pending')">🔴 กำลังดำเนินการ</div>
         <div class="btn-status" id="btn-done" onclick="selectStatus('done')">✅ เสร็จสิ้น</div>
       </div>
+
       <div class="row-btns">
         <button class="btn-back" id="btn-back-detail">← กลับ</button>
         <button class="btn-save" id="submitBtn" onclick="submitForm()">✅ บันทึก</button>
       </div>
     </div>
 
-    <!-- หน้า 5: สรุปก่อนปิด -->
+    <!-- หน้า 5: สำเร็จ -->
     <div class="page" id="p5">
       <div class="success-page">
         <div class="s-icon">✅</div>
         <h2>บันทึกสำเร็จ!</h2>
-        <div class="summary-box" id="summary-box"></div>
-        <p style="color:#999;font-size:12px;margin-top:8px">กำลังปิดหน้าต่าง...</p>
+        <p>ข้อมูลถูกบันทึกเรียบร้อยแล้ว<br>กำลังปิดหน้าต่าง...</p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
+const LIFF_ID  = '2009967914-L3U5ryzs';
 
 const rooms = {
   'Zone Villa': ['1101','1102','1103'],
@@ -227,7 +233,10 @@ function selectOffice(o) {
 
 function selectService() {
   const area = document.getElementById('serviceArea').value.trim();
-  if (!area) { alert('กรุณาระบุชื่อพื้นที่'); return; }
+  if (!area) {
+    alert('กรุณาระบุชื่อพื้นที่');
+    return;
+  }
   currentLocation = area;
   document.getElementById('bc-detail').innerHTML =
     '🍽️ พื้นที่บริการ › <span style="color:#2E7D32;font-weight:bold">' + area + '</span>';
@@ -246,7 +255,10 @@ function selectStatus(s) {
   document.getElementById('btn-done').className    = 'btn-status' + (s === 'done'    ? ' active-done'    : '');
 }
 
-window.onload = () => setToday();
+window.onload = async () => {
+  setToday();
+  try { await liff.init({ liffId: LIFF_ID }); } catch(e) {}
+};
 
 async function submitForm() {
   const repairType = document.getElementById('repairType').value;
@@ -263,54 +275,47 @@ async function submitForm() {
   btn.disabled = true;
   btn.textContent = 'กำลังบันทึก...';
 
-  const params  = new URLSearchParams(window.location.search);
-  const groupId = params.get('groupId') || '-5051186226';
-  const userName = params.get('userName') || 'ไม่ระบุ';
+  let userName = 'ไม่ระบุ';
+  let userId = '';
+  try {
+    const profile = await liff.getProfile();
+    userName = profile.displayName;
+    userId   = profile.userId;
+  } catch(e) {}
 
-  let zone = '';
+  const params  = new URLSearchParams(window.location.search);
+  const groupId = params.get('groupId') || '';
+
+  // กำหนด zone และ locationType ตามประเภท
+  let zone        = '';
+  let locationType = currentType;
   if (currentType === 'room')    zone = currentZone;
   if (currentType === 'office')  zone = 'Office';
   if (currentType === 'service') zone = 'พื้นที่บริการ';
 
   const payload = {
     type: 'repair',
-    locationType: currentType,
+    locationType,
     zone,
-    room:        currentLocation,
+    room: currentLocation,
     repairType, repairNote, date, detail,
-    status:      currentStatus,
-    userName,
-    groupId
+    status: currentStatus,
+    userName, userId, groupId
   };
 
-  fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
-    method: 'GET', mode: 'no-cors'
-  });
+  try {
+    fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
+      method: 'GET', mode: 'no-cors'
+    });
 
-  // แสดงสรุปใน LIFF
-  const typeEmoji = {
-    'ไฟฟ้า':'🔌','ประปา':'🚿','แอร์':'❄️',
-    'เฟอร์นิเจอร์':'🪑','งานไม้':'🪵','อื่นๆ':'🔧'
-  };
-  let locationText = '';
-  if (currentType === 'office')       locationText = `🏢 Office: ${currentLocation}`;
-  else if (currentType === 'service') locationText = `🍽️ พื้นที่บริการ: ${currentLocation}`;
-  else                                locationText = `🏠 ${currentZone} ห้อง ${currentLocation}`;
+    goPage('p5');
+    setTimeout(() => { try { liff.closeWindow(); } catch(e) {} }, 2000);
 
-  document.getElementById('summary-box').innerHTML = `
-    <div>${locationText}</div>
-    <div>${typeEmoji[repairType] || '🔧'} ประเภท: ${repairType}</div>
-    <div>📋 ${repairNote}</div>
-    <div>📝 ${detail}</div>
-    <div>📅 ${date}</div>
-  `;
-
-  goPage('p5');
-  setTimeout(() => {
-    try {
-      if (window.Telegram?.WebApp) window.Telegram.WebApp.close();
-    } catch(e) {}
-  }, 3000);
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    btn.disabled = false;
+    btn.textContent = '✅ บันทึก';
+  }
 }
 </script>
 </body>
