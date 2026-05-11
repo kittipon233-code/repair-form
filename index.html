@@ -17,7 +17,6 @@
     .section-title{font-size:15px;font-weight:bold;color:#333;margin-bottom:12px}
     .label{font-size:13px;font-weight:bold;color:#333;margin-bottom:6px;display:block}
     .breadcrumb{font-size:12px;color:#666;margin-bottom:12px;padding:8px 12px;background:#f5f5f5;border-radius:8px}
-    .breadcrumb span{color:#2E7D32;font-weight:bold}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
     .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
     .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:16px}
@@ -43,6 +42,7 @@
     .success-page .s-icon{font-size:56px;margin-bottom:12px}
     .success-page h2{font-size:20px;font-weight:bold;color:#2E7D32;margin-bottom:8px}
     .success-page p{font-size:14px;color:#666}
+    .summary-box{background:#f5f5f5;border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px;line-height:1.8;text-align:left}
   </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
       <h1>บันทึกการซ่อม</h1>
     </div>
 
-    <!-- หน้า 1: เลือกประเภทสถานที่ -->
+    <!-- หน้า 1 -->
     <div class="page active" id="p1">
       <p class="section-title">เลือกประเภทสถานที่</p>
       <div class="grid-3">
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <!-- หน้า 2a: เลือก Zone -->
+    <!-- หน้า 2a -->
     <div class="page" id="p2a">
       <p class="section-title">เลือก Zone</p>
       <div class="grid-2">
@@ -89,7 +89,7 @@
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 2b: เลือก Office -->
+    <!-- หน้า 2b -->
     <div class="page" id="p2b">
       <p class="section-title">เลือกแผนก</p>
       <div class="grid-2">
@@ -103,7 +103,7 @@
       <button class="btn-back" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 2c: พื้นที่บริการ -->
+    <!-- หน้า 2c -->
     <div class="page" id="p2c">
       <p class="section-title">ระบุพื้นที่บริการ</p>
       <label class="label">📍 ชื่อพื้นที่</label>
@@ -112,7 +112,7 @@
       <button class="btn-back" style="width:100%" onclick="goPage('p1')">← กลับ</button>
     </div>
 
-    <!-- หน้า 3: เลือกห้อง -->
+    <!-- หน้า 3 -->
     <div class="page" id="p3">
       <div class="breadcrumb">🏠 ห้องพัก › <span id="zone-label"></span></div>
       <p class="section-title">เลือกห้อง</p>
@@ -120,10 +120,9 @@
       <button class="btn-back" onclick="goPage('p2a')">← กลับ</button>
     </div>
 
-    <!-- หน้า 4: กรอกรายละเอียด -->
+    <!-- หน้า 4 -->
     <div class="page" id="p4">
       <div class="breadcrumb" id="bc-detail"></div>
-
       <label class="label">🛠️ ประเภทการซ่อม</label>
       <select id="repairType">
         <option value="">-- เลือกประเภท --</option>
@@ -134,22 +133,17 @@
         <option value="งานไม้">🪵 งานไม้</option>
         <option value="อื่นๆ">🔧 อื่นๆ</option>
       </select>
-
       <label class="label">📋 รายการแจ้งซ่อม</label>
       <textarea id="repairNote" placeholder="พิมพ์รายละเอียด..."></textarea>
-
       <label class="label">📅 วันที่</label>
       <input type="date" id="repairDate">
-
       <label class="label">📝 รายละเอียด</label>
       <textarea id="detail" placeholder="พิมพ์รายละเอียดการซ่อมที่นี่..."></textarea>
-
       <label class="label">🔄 สถานะ</label>
       <div class="grid-2" style="margin-bottom:14px">
         <div class="btn-status active-pending" id="btn-pending" onclick="selectStatus('pending')">🔴 กำลังดำเนินการ</div>
         <div class="btn-status" id="btn-done" onclick="selectStatus('done')">✅ เสร็จสิ้น</div>
       </div>
-
       <div class="row-btns">
         <button class="btn-back" id="btn-back-detail">← กลับ</button>
         <button class="btn-save" id="submitBtn" onclick="submitForm()">✅ บันทึก</button>
@@ -161,15 +155,17 @@
       <div class="success-page">
         <div class="s-icon">✅</div>
         <h2>บันทึกสำเร็จ!</h2>
-        <p>ข้อมูลถูกบันทึกเรียบร้อยแล้ว<br>กำลังปิดหน้าต่าง...</p>
+        <div class="summary-box" id="summary-box"></div>
+        <p style="color:#999;font-size:12px;margin-top:8px">กำลังปิดหน้าต่าง...</p>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxqnahlgOcIiMey3_Lpz7tpuek_cQwcyIuW2gkuIT7GKpucx-BFkQVRmsPg0CE8yybB8w/exec';
-const LIFF_ID = '2010041335-hTFoYG3L';
+const LIFF_ID  = '2010041335-hTFoYG3L';
 
 const rooms = {
   'Zone Villa': ['1101','1102','1103'],
@@ -233,10 +229,7 @@ function selectOffice(o) {
 
 function selectService() {
   const area = document.getElementById('serviceArea').value.trim();
-  if (!area) {
-    alert('กรุณาระบุชื่อพื้นที่');
-    return;
-  }
+  if (!area) { alert('กรุณาระบุชื่อพื้นที่'); return; }
   currentLocation = area;
   document.getElementById('bc-detail').innerHTML =
     '🍽️ พื้นที่บริการ › <span style="color:#2E7D32;font-weight:bold">' + area + '</span>';
@@ -276,46 +269,55 @@ async function submitForm() {
   btn.textContent = 'กำลังบันทึก...';
 
   let userName = 'ไม่ระบุ';
-  let userId = '';
   try {
     const profile = await liff.getProfile();
     userName = profile.displayName;
-    userId   = profile.userId;
   } catch(e) {}
 
   const params  = new URLSearchParams(window.location.search);
   const groupId = params.get('groupId') || '';
 
-  // กำหนด zone และ locationType ตามประเภท
-  let zone        = '';
-  let locationType = currentType;
+  let zone = '';
   if (currentType === 'room')    zone = currentZone;
   if (currentType === 'office')  zone = 'Office';
   if (currentType === 'service') zone = 'พื้นที่บริการ';
 
   const payload = {
     type: 'repair',
-    locationType,
+    locationType: currentType,
     zone,
-    room: currentLocation,
+    room:        currentLocation,
     repairType, repairNote, date, detail,
-    status: currentStatus,
-    userName, userId, groupId
+    status:      currentStatus,
+    userName,
+    groupId
   };
 
-  try {
-    fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
-      method: 'GET', mode: 'no-cors'
-    });
+  fetch(GAS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), {
+    method: 'GET', mode: 'no-cors'
+  });
 
-    goPage('p5');
-    setTimeout(() => { try { liff.closeWindow(); } catch(e) {} }, 2000);
+  // แสดงสรุปใน LIFF แทนส่ง Push
+  const typeEmoji = {
+    'ไฟฟ้า':'🔌','ประปา':'🚿','แอร์':'❄️',
+    'เฟอร์นิเจอร์':'🪑','งานไม้':'🪵','อื่นๆ':'🔧'
+  };
+  let locationText = '';
+  if (currentType === 'office')       locationText = `🏢 Office: ${currentLocation}`;
+  else if (currentType === 'service') locationText = `🍽️ พื้นที่บริการ: ${currentLocation}`;
+  else                                locationText = `🏠 ${currentZone} ห้อง ${currentLocation}`;
 
-  } catch(e) {
-    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
-    btn.disabled = false;
-    btn.textContent = '✅ บันทึก';
-  }
+  document.getElementById('summary-box').innerHTML = `
+    <div>${locationText}</div>
+    <div>${typeEmoji[repairType] || '🔧'} ประเภท: ${repairType}</div>
+    <div>📋 ${repairNote}</div>
+    <div>📝 ${detail}</div>
+    <div>📅 ${date}</div>
+    <div>👤 ${userName}</div>
+  `;
+
+  goPage('p5');
+  setTimeout(() => { try { liff.closeWindow(); } catch(e) {} }, 3000);
 }
 </script>
 </body>
